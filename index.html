@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Case Converter</title>
+    
+    <link rel="icon" href="image_52.png">
+    <link rel="apple-touch-icon" href="image_52.png">
+
+    <style>
+        :root {
+            --main: #333;
+            --bg: #fff;
+            --accent: #eee;
+            --input-bg: #fafafa;
+            --radius: 15px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--main);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 420px;
+            padding: 40px 20px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        h1 { font-size: 1.8rem; font-weight: 800; margin-bottom: 8px; letter-spacing: -1px; }
+        .subtitle { font-size: 0.85rem; color: #666; font-weight: 500; margin-bottom: 25px; }
+
+        /* 入力エリア */
+        .input-wrapper {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 180px;
+            padding: 20px;
+            border: 2px solid var(--accent);
+            border-radius: var(--radius);
+            background: var(--input-bg);
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--main) !important;
+            box-sizing: border-box;
+            outline: none;
+            resize: none;
+            -webkit-appearance: none;
+            -webkit-text-fill-color: var(--main) !important;
+            opacity: 1 !important;
+        }
+        textarea::placeholder { color: #bbb; -webkit-text-fill-color: #bbb; }
+
+        /* クリアボタン */
+        .clear-btn {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            background: #ddd;
+            border: none;
+            color: #fff;
+            font-size: 0.7rem;
+            font-weight: 800;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 8px;
+            display: none;
+            text-transform: uppercase;
+        }
+        .clear-btn.active { display: block; }
+
+        /* アクションボタン群 */
+        .action-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .btn {
+            background: var(--accent);
+            color: var(--main);
+            border: none;
+            padding: 15px;
+            border-radius: var(--radius);
+            font-weight: 800;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .btn:active { transform: scale(0.96); background: #ddd; }
+
+        /* メインアクション：コピー */
+        .copy-btn {
+            width: 100%;
+            background: var(--main);
+            color: #fff;
+            border: none;
+            padding: 18px;
+            border-radius: var(--radius);
+            font-weight: 800;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.2s;
+        }
+        .copy-btn:active { transform: scale(0.98); opacity: 0.9; }
+        .copy-btn.success { background: #4CAF50; }
+
+        /* フッター・モーダル（#47踏襲） */
+        footer { margin-top: 50px; font-size: 11px; color: #aaa; line-height: 1.8; }
+        .footer-btns { margin-top: 30px; }
+        .kofi-btn {
+            display: inline-block; background: var(--main); color: #fff;
+            padding: 12px 25px; border-radius: var(--radius);
+            text-decoration: none; font-weight: bold; font-size: 14px; margin-bottom: 12px;
+        }
+        .home-btn {
+            display: block; width: 60%; margin: 0 auto; background: var(--accent);
+            color: var(--main); border: none; padding: 10px;
+            border-radius: var(--radius); font-weight: 700; font-size: 13px; cursor: pointer;
+        }
+
+        #modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 100;
+        }
+        .modal-content {
+            background: #fff; width: 85%; max-width: 320px; padding: 30px;
+            border-radius: var(--radius); text-align: left; position: relative;
+        }
+        .close-x { position: absolute; top: 15px; right: 20px; font-size: 20px; color: #ccc; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Case Converter</h1>
+    <p class="subtitle">Switch text format in one tap.</p>
+
+    <div class="input-wrapper">
+        <textarea id="textInput" placeholder="Paste your text here..." oninput="toggleClearBtn()"></textarea>
+        <button class="clear-btn" id="clearBtn" onclick="clearText()">clr</button>
+    </div>
+
+    <div class="action-grid">
+        <button class="btn" onclick="transform('upper')">UPPERCASE</button>
+        <button class="btn" onclick="transform('lower')">lowercase</button>
+        <button class="btn" onclick="transform('capital')">Capitalize</button>
+        <button class="btn" onclick="transform('sentence')">Sentence</button>
+    </div>
+
+    <button class="copy-btn" id="copyBtn" onclick="copyResult()">Copy to Clipboard</button>
+
+    <div class="footer-btns">
+        <a href="https://ko-fi.com/afrorakda" target="_blank" class="kofi-btn">☕️buy me a coffee</a>
+        <button class="home-btn" onclick="showModal()">Add to Home Screen</button>
+    </div>
+
+    <footer>
+        <div>No login / No tracking / No ads / Browser only</div>
+        <div>Privacy Policy / afrorakda © 2026</div>
+    </footer>
+</div>
+
+<div id="modal" onclick="hideModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <span class="close-x" onclick="hideModal()">×</span>
+        <h3>📱 Install</h3>
+        <p>Add to your home screen.</p>
+        <p>🍏 <strong>iPhone (Safari):</strong><br>Tap Share, then Add to Home Screen.</p>
+        <p>🤖 <strong>Android (Chrome):</strong><br>Tap Menu (⋮), then Add to Home Screen.</p>
+    </div>
+</div>
+
+<script>
+    const textInput = document.getElementById('textInput');
+    const clearBtn = document.getElementById('clearBtn');
+    const copyBtn = document.getElementById('copyBtn');
+
+    function toggleClearBtn() {
+        clearBtn.classList.toggle('active', textInput.value.length > 0);
+    }
+
+    function clearText() {
+        textInput.value = '';
+        toggleClearBtn();
+        textInput.focus();
+    }
+
+    function transform(type) {
+        let val = textInput.value;
+        if (!val) return;
+
+        switch(type) {
+            case 'upper':
+                textInput.value = val.toUpperCase();
+                break;
+            case 'lower':
+                textInput.value = val.toLowerCase();
+                break;
+            case 'capital':
+                textInput.value = val.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+                break;
+            case 'sentence':
+                textInput.value = val.toLowerCase().replace(/(^\s*\w|[.!?]\s*\w)/g, c => c.toUpperCase());
+                break;
+        }
+    }
+
+    async function copyResult() {
+        if (!textInput.value) return;
+        
+        try {
+            await navigator.clipboard.writeText(textInput.value);
+            const originalText = copyBtn.innerText;
+            copyBtn.innerText = 'Copied!';
+            copyBtn.classList.add('success');
+            
+            setTimeout(() => {
+                copyBtn.innerText = originalText;
+                copyBtn.classList.remove('success');
+            }, 2000);
+        } catch (err) {
+            console.error('Failed to copy', err);
+        }
+    }
+
+    function showModal() { document.getElementById('modal').style.display = 'flex'; }
+    function hideModal() { document.getElementById('modal').style.display = 'none'; }
+</script>
+
+</body>
+</html>
